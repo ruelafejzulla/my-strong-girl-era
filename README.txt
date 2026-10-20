@@ -1,7 +1,7 @@
-MY STRONG GIRL ERA — IN-APP REAL PERSON VIDEOS
+MY STRONG GIRL ERA — CUSTOM EXERCISES & PERSONAL MEDIA
 
-Upload the six app files (index.html, vault.html, sw.js, manifest.webmanifest, icon.png, icon-512.png) to your existing GitHub repository root. Keep your existing Home Screen app and do not clear website data.
+NEW: Upload your own images/videos per exercise (including warm-ups and stretches); videos play inline on iPhone. Files stored locally in IndexedDB. No repeated pre-selected YouTube videos. New Exercises tab with 20 choices and workout strength exercise swap controls.
 
-This replaces stick figures and YouTube search links with playable YouTube video embeds inside the workout page. Curated exact or related demonstrations are assigned to 9 exercises. Warm-ups use a real-person full-body warm-up video; stretches use a follow-along video. Some other movements have no preselected video yet: paste any YouTube watch URL into their built-in field to play it inside the app. The saved URL is kept on this device. This is not a full collection of individually curated exercise clips.
+Upload the SIX app files in this ZIP to your existing GitHub repo root; do not delete app or clear browser data. Your previous workout data, wellness entries, and photo vault are preserved by their existing storage keys. New exercise swaps are saved separately.
 
-Requires internet for playback. Some videos may block embedding or show YouTube branding. Your workouts, meal features, and encrypted local photo vault remain in the update. Test in Safari after GitHub Actions deployment turns green.
+IMPORTANT: Exercise pictures/videos are NOT PIN-protected or encrypted. Keep private progress photos in your separate encrypted vault. Uploaded exercise media is device/browser specific; it is not synced or backed up, and can be lost if site data is cleared. Large videos can fill device storage; use short clips (60 MB maximum per file). Check iPhone playback; some formats may not be supported.
