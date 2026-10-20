@@ -80,22 +80,41 @@ const extra=cat==='machine'?'<rect x="32" y="40" width="20" height="95" rx="5" f
 const esc=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
 return `<svg class="exercise-visual" viewBox="0 0 380 174" role="img" aria-label="Simplified pose guide for ${esc(name)}"><rect width="380" height="174" rx="14" fill="#fff"/><rect x="8" y="8" width="176" height="158" rx="12" fill="#fff7fa"/><rect x="196" y="8" width="176" height="158" rx="12" fill="#fff0f6"/><text x="96" y="25" font-size="12" font-weight="700" text-anchor="middle" fill="#914366">START</text><text x="284" y="25" font-size="12" font-weight="700" text-anchor="middle" fill="#914366">MOVE WITH CONTROL</text><g transform="translate(0,0)">${extra}${person(94,92,cat)}</g><g transform="translate(188,0)">${extra}${person(94,cat==='squat'?107:cat==='hinge'?99:cat==='floor'?99:cat==='leg'?83:92,cat)}</g><path d="M184 85h11" stroke="#c35c8d" stroke-width="2" stroke-dasharray="2 2"/></svg>`;
 }
+// Curated real-person videos. Each video plays in this app via the publisher's official embed.
+const embeddedVideos={
+ 'Hip thrust machine':['pF17m_CXfL0','Hip thrust technique (bench variation; machine setup differs)'],
+ 'Unweighted or light RDL':['3VXmecChYYM','Romanian deadlift form'],
+ 'Wall hip hinge':['ZEnWV4kguKc','Hip hinge and Romanian deadlift technique'],
+ 'Dowel hip hinge':['ZEnWV4kguKc','Hip hinge and Romanian deadlift technique'],
+ 'Leg press':['3nFIDWeh0NI','Beginner leg machines tutorial (includes leg press)'],
+ 'Hip abductor':['3nFIDWeh0NI','Beginner leg machines tutorial (includes hip abductor)'],
+ 'Seated leg curl':['3nFIDWeh0NI','Beginner leg machines tutorial (includes seated leg curl)'],
+ 'Cable glute kickbacks':['3nFIDWeh0NI','Beginner leg machines tutorial (includes kickback machine; cable variation differs)'],
+ 'Lat pulldown':['QHZkxphcO6U','Lat pulldown demonstration (grip variation may differ)']
+};
+const warmupVideo=['-sYxiWaoH_g','Beginner full-body warm-up (multiple movements)'];
+const stretchVideo=['u6mQWV1Tp9o','Beginner follow-along workout with stretching near the end'];
+function isWarmup(n){return /treadmill|leg swings|hip circles|bodyweight squats|arm circles|shoulder rolls|torso rotations/i.test(n)}
+function isStretch(n){return /stretch/i.test(n)}
+function videoFor(n){return embeddedVideos[n]||(isWarmup(n)?warmupVideo:isStretch(n)?stretchVideo:null)}
+function videoIdFromUrl(s){let m=s.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);return m?m[1]:null}
 function appendExerciseGuide(body,name){
-const details=el('details','exercise-guide');
-details.append(el('summary','','📸 Picture guide + 🎥 Video tutorial'));
-const pic=el('div');
-pic.innerHTML=guideSvg(name);
-details.append(pic);
-details.append(el('p','guide-caption','Simplified pose illustration (not a precise machine setup or full motion sequence).'));
-const steps=el('ol','guide-steps');
-(movementGuides[name]||['Start in a comfortable position.','Move slowly and with control.','Stop if you feel pain.']).forEach(s=>steps.append(el('li','',s)));
-details.append(steps);
-const a=el('a','guide-link','▶ Find video tutorial');
-a.href='https://www.youtube.com/results?search_query='+encodeURIComponent(name+' exercise proper form beginner tutorial');
-a.target='_blank';a.rel='noopener noreferrer';
-details.append(a);
-details.append(el('p','guide-caption','Video opens YouTube search; choose a qualified instructor. Internet required for videos.'));
-body.append(details);
+ const details=el('details','exercise-guide');details.append(el('summary','','🎥 Watch real-person video inside app'));
+ const holder=el('div'); details.append(holder);
+ const steps=el('ol','guide-steps');(movementGuides[name]||['Start in a comfortable position.','Move slowly and with control.','Stop if you feel pain.']).forEach(t=>steps.append(el('li','',t)));
+ const key='sge-exercise-video-'+name;let savedUrl='';try{savedUrl=localStorage.getItem(key)||''}catch(e){}
+ const videoInput=el('input');videoInput.type='url';videoInput.placeholder='Paste a YouTube video URL for this exercise';videoInput.value=savedUrl;videoInput.style.width='100%';videoInput.style.marginTop='8px';
+ const save=el('button','','Save video');save.type='button';save.style.marginTop='6px';
+ const status=el('p','guide-caption','');
+ function showVideo(){holder.replaceChildren();let id=videoIdFromUrl(videoInput.value);let curated=videoFor(name);let selected=id?[id,'Your chosen exercise demonstration']:curated;
+ if(!selected){holder.append(el('p','guide-caption','No reviewed video has been assigned to this exercise yet. Paste a YouTube video URL below to play it right here.'));return;}
+ const label=el('p','guide-caption',selected[1]);holder.append(label);
+ const frame=document.createElement('iframe');frame.title='Exercise video: '+name;frame.loading='lazy';frame.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';frame.allowFullscreen=true;frame.referrerPolicy='strict-origin-when-cross-origin';frame.style.cssText='width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#1b1220';frame.src='https://www.youtube-nocookie.com/embed/'+selected[0]+'?playsinline=1&rel=0';holder.append(frame);
+ holder.append(el('p','guide-caption','Plays here with internet. Video belongs to its creator; the embedded player may show YouTube branding. If the creator blocks embedding, choose another video.'));
+ }
+ save.addEventListener('click',()=>{const val=videoInput.value.trim();if(val&&!videoIdFromUrl(val)){status.textContent='Please paste a valid YouTube watch, shorts, or youtu.be URL.';return;}try{if(val)localStorage.setItem(key,val);else localStorage.removeItem(key)}catch(e){}status.textContent='Video preference saved on this device.';showVideo()});
+ details.addEventListener('toggle',()=>{if(details.open && !holder.childNodes.length)showVideo();if(!details.open){holder.replaceChildren();}});
+ details.append(steps,el('p','guide-caption','Want a different instructor or an exact machine variation? Paste that video URL below. It will play inside the app.'),videoInput,save,status);body.append(details);
 }
 
 let day=0;let saved={};try{saved=JSON.parse(localStorage.getItem('sge-data')||'{}')}catch(e){}const checks=saved.checks||{},weights=saved.weights||{},schedule=Array.isArray(saved.schedule)?saved.schedule:['','',''];const persist=()=>{try{localStorage.setItem('sge-data',JSON.stringify({checks,weights,schedule,bodyweight:document.getElementById('bodyweight').value}))}catch(e){}};function el(tag,cls,txt){const x=document.createElement(tag);if(cls)x.className=cls;if(txt!==undefined)x.textContent=txt;return x}function id(d,g,i){return `${d}-${g}-${i}`}function progress(){let all=0,done=0;days.forEach((d,di)=>d.groups.forEach((g,gi)=>g[1].forEach((_,i)=>{all++;if(checks[id(di,gi,i)])done++})));const pct=Math.round(done/all*100);document.getElementById('pct').textContent=pct+'%';document.getElementById('fill').style.width=pct+'%';document.getElementById('progressText').textContent=`${done} of ${all} steps completed this week`;}function render(){const out=document.getElementById('workout');out.replaceChildren();out.append(el('h2','',(schedule[day] ? schedule[day]+' — ' : 'Workout '+(day+1)+' — ')+days[day].name));days[day].groups.forEach((group,g)=>{const box=el('div','card section');box.append(el('h3','',group[0]));group[1].forEach((item,i)=>{const k=id(day,g,i),line=el('div','item'),cb=document.createElement('input');cb.type='checkbox';cb.checked=!!checks[k];cb.setAttribute('aria-label','Complete '+item[0]);cb.addEventListener('change',()=>{checks[k]=cb.checked;persist();progress()});const body=el('div');body.style.flex='1';body.append(el('strong','',item[0]),el('div','reps',item[1]));const details=el('details');details.append(el('summary','','Show form tip'),el('div','',item[2]));body.append(details);appendExerciseGuide(body,item[0]);if(item[3]){body.append(el('div','reps','Start: '+item[3]));const label=el('label','weightlabel','Weight used (lb) ');const input=document.createElement('input');input.type='number';input.min='0';input.step='.5';input.placeholder='lb';input.value=weights[k]??'';input.addEventListener('input',()=>{weights[k]=input.value;persist()});label.append(input);body.append(label)}line.append(cb,body);box.append(line)});out.append(box)});const btn=el('button','reset','Reset this day');btn.addEventListener('click',()=>{if(confirm('Clear checkmarks for this day?')){days[day].groups.forEach((g,gi)=>g[1].forEach((_,i)=>delete checks[id(day,gi,i)]));persist();render();}});out.append(btn);progress()};for(let i=0;i<3;i++){const input=document.getElementById('schedule'+i);input.value=schedule[i]||'';input.addEventListener('input',()=>{schedule[i]=input.value;persist();if(day===i)render()})}document.querySelectorAll('[data-day]').forEach(b=>b.addEventListener('click',()=>{day=Number(b.dataset.day);document.querySelectorAll('[data-day]').forEach(x=>x.classList.toggle('active',x===b));render()}));const bw=document.getElementById('bodyweight');bw.value=saved.bodyweight||'';function weightUpdate(){const v=Number(bw.value);document.getElementById('remaining').textContent=v>0?(v>=90?'You reached your goal!':`${(90-v).toFixed(1)} lb to your goal`):'Enter a weight to see your progress.';persist()}bw.addEventListener('input',weightUpdate);weightUpdate();document.getElementById('hideWeight').addEventListener('click',()=>{document.getElementById('privateWeight').open=false});render();if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}
